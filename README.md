@@ -49,6 +49,9 @@ Open the `.env` file and insert your tokens:
 ```bash
 docker build -t shithead-bot .
 
+# Create necessary files before mounting to prevent Docker from creating them as directories
+touch shithead.db short_term.json
+
 # Run with mounted volumes to persist databases and vector memory:
 docker run -d --name shithead \
   --env-file .env \
