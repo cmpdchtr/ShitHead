@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import WebApp from '@twa-dev/sdk'
 import axios from 'axios'
 import { Bot, Settings, RefreshCw, MessageSquare, Shield, Activity } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+
+const WebApp = (window as any).Telegram?.WebApp;
 
 // Determine API base URL (in dev it's localhost, in prod it might be same origin or a specific domain)
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
@@ -83,7 +84,11 @@ export default function App() {
       
     } catch (err) {
       console.error("Error loading bot details", err);
-      WebApp.showAlert("Помилка завантаження деталей бота.");
+      if (WebApp?.showAlert) {
+        WebApp.showAlert("Помилка завантаження деталей бота.");
+      } else {
+        alert("Помилка завантаження деталей бота.");
+      }
     } finally {
       setLoading(false);
     }
@@ -116,10 +121,18 @@ export default function App() {
         keywords: JSON.stringify(kws),
         ignore_users: JSON.stringify(igns)
       });
-      WebApp.showAlert("Правила успішно збережено! ✅");
+      if (WebApp?.showAlert) {
+        WebApp.showAlert("Правила успішно збережено! ✅");
+      } else {
+        alert("Правила успішно збережено! ✅");
+      }
     } catch (err) {
       console.error(err);
-      WebApp.showAlert("Помилка збереження правил ❌");
+      if (WebApp?.showAlert) {
+        WebApp.showAlert("Помилка збереження правил ❌");
+      } else {
+        alert("Помилка збереження правил ❌");
+      }
     } finally {
       setSaving(false);
     }
@@ -320,3 +333,4 @@ export default function App() {
     </div>
   )
 }
+
