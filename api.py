@@ -1,8 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import db
 import json
+import os
 
 app = FastAPI(title="ShitHead API")
 
@@ -75,3 +78,14 @@ async def update_rules(bot_id: int, update: BotRulesUpdate):
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok"}
+
+# Serve Frontend
+dist_path = os.path.join(os.path.dirname(__file__), "frontend", "dist")
+if os.path.exists(dist_path):
+    app.mount("/assets", StaticFiles(directory=os.path.join(dist_path, "assets")), name="assets")
+    
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Serve index.html for any path not matching an API route or file in assets
+        index_path = os.path.join(dist_path, "index.html")
+        return FileResponse(index_path)

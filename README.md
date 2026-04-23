@@ -48,7 +48,7 @@ Open the `.env` file and insert your tokens:
 ### Step 2: Run via Docker (Recommended)
 **One-liner command:**
 ```bash
-docker build -t shithead-bot . && touch shithead.db short_term.json && docker run -d --name shithead -p 8000:8000 --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
+docker build -t shithead-bot . && touch shithead.db short_term.json && docker run -d --name shithead -p 8088:8088 --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
 ```
 
 **Step-by-step:**
@@ -57,7 +57,7 @@ docker build -t shithead-bot . && touch shithead.db short_term.json && docker ru
 3. Run with mounted volumes:
 ```bash
 docker run -d --name shithead \
-  -p 8000:8000 \
+  -p 8088:8088 \
   --env-file .env \
   -v $(pwd)/chroma_data:/app/chroma_data \
   -v $(pwd)/shithead.db:/app/shithead.db \
@@ -82,7 +82,7 @@ python3 -m venv venv && source venv/bin/activate && pip install -r requirements.
 
 ### For Docker installations:
 ```bash
-git pull && docker build -t shithead-bot . && docker rm -f shithead && docker run -d --name shithead -p 8000:8000 --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
+git pull && docker build -t shithead-bot . && docker rm -f shithead && docker run -d --name shithead -p 8088:8088 --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
 ```
 
 ### For Local installations:

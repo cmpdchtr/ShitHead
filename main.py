@@ -13,7 +13,7 @@ from api import app as fastapi_app
 load_dotenv()
 
 MASTER_BOT_TOKEN = os.getenv("MASTER_BOT_TOKEN")
-API_PORT = int(os.getenv("API_PORT", "8000"))
+API_PORT = int(os.getenv("API_PORT", "8088"))
 
 # Store polling tasks for managed bots
 running_bots = {}

@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 
 // Determine API base URL (in dev it's localhost, in prod it might be same origin or a specific domain)
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-  ? 'http://localhost:8000/api' 
+  ? 'http://localhost:8088/api' 
   : '/api';
 
 interface ManagedBot {
