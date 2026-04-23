@@ -29,18 +29,20 @@ async def start_cmd(message: Message, bot: Bot):
     )
 
 @manager_router.managed_bot()
-async def on_managed_bot(update: Update, bot: Bot):
-    # This is triggered when a user creates a new bot via our link
-    # 'update' is the ManagedBotUpdated object in aiogram
-    # Let's extract the creator id and bot info.
-    # The structure of ManagedBotUpdated contains:
-    # bot (User object), manager_bot_id, user (creator)
+async def on_managed_bot(event: Update, bot: Bot):
+    # Accessing the managed_bot update specifically
+    m_bot_update = event.managed_bot
+    if not m_bot_update:
+        return
+
+    creator_id = m_bot_update.user.id
+    # To avoid 'bot' property collision, we can access the field via model_dump or getattr if needed,
+    # but in aiogram 3.17+, it might be handled. Let's use the most reliable way.
+    new_bot_user = m_bot_update.bot
     
-    # Since we might not know the exact attributes of ManagedBotUpdated, we can use vars()
-    creator_id = update.user.id
-    new_bot_id = update.bot.id
-    new_bot_name = update.bot.first_name
-    new_bot_username = update.bot.username
+    new_bot_id = new_bot_user.id
+    new_bot_name = new_bot_user.first_name
+    new_bot_username = new_bot_user.username
     
     try:
         # Request the token from Telegram
