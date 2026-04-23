@@ -12,7 +12,6 @@ async def init_db():
                 deepseek_token TEXT
             )
         """)
-        # We add new columns for the rule engine: probability, delay_seconds, keywords, ignore_users, avatar_file_id, about_text, description
         await db.execute("""
             CREATE TABLE IF NOT EXISTS managed_bots (
                 bot_id INTEGER PRIMARY KEY,
@@ -30,7 +29,6 @@ async def init_db():
                 description TEXT
             )
         """)
-        # For an existing DB, we need to try adding columns if they don't exist (basic migration)
         try:
             await db.execute("ALTER TABLE managed_bots ADD COLUMN probability INTEGER DEFAULT 100")
             await db.execute("ALTER TABLE managed_bots ADD COLUMN delay_seconds INTEGER DEFAULT 0")
@@ -40,7 +38,7 @@ async def init_db():
             await db.execute("ALTER TABLE managed_bots ADD COLUMN about_text TEXT")
             await db.execute("ALTER TABLE managed_bots ADD COLUMN description TEXT")
         except sqlite3.OperationalError:
-            pass # Columns already exist
+            pass
 
         await db.execute("""
             CREATE TABLE IF NOT EXISTS bot_channels (
@@ -49,7 +47,33 @@ async def init_db():
                 UNIQUE(bot_id, channel_id)
             )
         """)
+        
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS bot_stats (
+                bot_id INTEGER PRIMARY KEY,
+                comments_posted INTEGER DEFAULT 0,
+                replies_received INTEGER DEFAULT 0,
+                tokens_used INTEGER DEFAULT 0
+            )
+        """)
         await db.commit()
+
+async def increment_stat(bot_id: int, stat_type: str, amount: int = 1):
+    allowed_stats = {"comments_posted", "replies_received", "tokens_used"}
+    if stat_type not in allowed_stats:
+        return
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute(f"INSERT OR IGNORE INTO bot_stats (bot_id) VALUES (?)", (bot_id,))
+        await db.execute(f"UPDATE bot_stats SET {stat_type} = {stat_type} + ? WHERE bot_id = ?", (amount, bot_id))
+        await db.commit()
+
+async def get_bot_stats(bot_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT comments_posted, replies_received, tokens_used FROM bot_stats WHERE bot_id = ?", (bot_id,)) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                return {"comments_posted": row[0], "replies_received": row[1], "tokens_used": row[2]}
+            return {"comments_posted": 0, "replies_received": 0, "tokens_used": 0}
 
 async def add_managed_bot(bot_id: int, owner_id: int, token: str, name: str, username: str):
     async with aiosqlite.connect(DB_PATH) as db:
@@ -79,7 +103,6 @@ async def get_managed_bot(bot_id: int):
         async with db.execute("SELECT token, system_prompt, probability, delay_seconds, keywords, ignore_users FROM managed_bots WHERE bot_id = ?", (bot_id,)) as cursor:
             return await cursor.fetchone()
 
-
 async def add_bot_channel(bot_id: int, channel_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("INSERT OR IGNORE INTO bot_channels (bot_id, channel_id) VALUES (?, ?)", (bot_id, channel_id))
@@ -100,17 +123,3 @@ async def update_bot_identity(bot_id: int, name: str, about: str, description: s
     async with aiosqlite.connect(DB_PATH) as db:
         await db.execute("UPDATE managed_bots SET name = ?, about_text = ?, description = ? WHERE bot_id = ?", (name, about, description, bot_id))
         await db.commit()
- system_prompt, probability, delay_seconds, keywords, ignore_users FROM managed_bots WHERE bot_id = ?", (bot_id,)) as cursor:
-            return await cursor.fetchone()
-
-
-async def add_bot_channel(bot_id: int, channel_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        await db.execute("INSERT OR IGNORE INTO bot_channels (bot_id, channel_id) VALUES (?, ?)", (bot_id, channel_id))
-        await db.commit()
-
-async def get_bot_channels(bot_id: int):
-    async with aiosqlite.connect(DB_PATH) as db:
-        async with db.execute("SELECT channel_id FROM bot_channels WHERE bot_id = ?", (bot_id,)) as cursor:
-            rows = await cursor.fetchall()
-            return [row[0] for row in rows]
