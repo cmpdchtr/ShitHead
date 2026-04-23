@@ -87,23 +87,26 @@ async def add_bot_manual(message: Message, bot: Bot):
 
 @manager_router.message(Command("setprompt"))
 async def set_prompt(message: Message):
-    parts = message.text.split(" ", 2)
+    # Clean up whitespace and split
+    parts = message.text.strip().split(maxsplit=2)
     if len(parts) < 3:
         await message.answer("❌ Формат: /setprompt @botusername Ти веселий коментатор...")
         return
         
-    username = parts[1].replace("@", "")
-    prompt = parts[2]
+    username = parts[1].replace("@", "").strip()
+    prompt = parts[2].strip()
     
-    # We should add a db query to update by username
-    # For now, let's assume we implement update_bot_prompt_by_username
     import aiosqlite
     from db import DB_PATH
     async with aiosqlite.connect(DB_PATH) as database:
-        async with database.execute("SELECT bot_id FROM managed_bots WHERE username = ? AND owner_id = ?", (username, message.from_user.id)) as cursor:
+        # Use LOWER() for case-insensitive username comparison
+        async with database.execute(
+            "SELECT bot_id FROM managed_bots WHERE LOWER(username) = LOWER(?) AND owner_id = ?", 
+            (username, message.from_user.id)
+        ) as cursor:
             row = await cursor.fetchone()
             if not row:
-                await message.answer("❌ Бота з таким юзернеймом не знайдено або ти не є його власником.")
+                await message.answer(f"❌ Бота @{username} не знайдено або ти не є його власником.")
                 return
             
             bot_id = row[0]
