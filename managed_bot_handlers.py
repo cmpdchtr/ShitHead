@@ -120,4 +120,3 @@ async def handle_replies(message: Message, bot: Bot):
     
     await message.reply(response)
     add_to_short_term(thread_id, response, "assistant")
-sponse, "assistant")
