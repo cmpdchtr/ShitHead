@@ -37,22 +37,23 @@ Each managed bot is powered by **DeepSeek** (via the [OpenDeep](https://github.c
 
 ### Step 1: Clone and Configure
 ```bash
-git clone https://github.com/cmpdchtr/ShitHead.git
-cd ShitHead
-cp .env.example .env
+git clone https://github.com/cmpdchtr/ShitHead.git && cd ShitHead && cp .env.example .env
 ```
 Open the `.env` file and insert your tokens:
 - `MASTER_BOT_TOKEN` — The token for the master bot obtained from [@BotFather](https://t.me/BotFather) (ensure that "Bot Management Mode" is enabled in the bot's settings).
 - `DEEPSEEK_USER_TOKEN` — Your `userToken` from the Local Storage of [chat.deepseek.com](https://chat.deepseek.com).
 
 ### Step 2: Run via Docker (Recommended)
+**One-liner command:**
 ```bash
-docker build -t shithead-bot .
+docker build -t shithead-bot . && touch shithead.db short_term.json && docker run -d --name shithead --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
+```
 
-# Create necessary files before mounting to prevent Docker from creating them as directories
-touch shithead.db short_term.json
-
-# Run with mounted volumes to persist databases and vector memory:
+**Step-by-step:**
+1. Build the image: `docker build -t shithead-bot .`
+2. Create necessary files before mounting: `touch shithead.db short_term.json`
+3. Run with mounted volumes:
+```bash
 docker run -d --name shithead \
   --env-file .env \
   -v $(pwd)/chroma_data:/app/chroma_data \
@@ -62,16 +63,28 @@ docker run -d --name shithead \
 ```
 
 ### Step 2 (Alternative): Run Locally
+**One-liner command:**
 ```bash
-# Create and activate a virtual environment
-python3 -m venv venv
-source venv/bin/activate
+python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python main.py
+```
 
-# Install dependencies
-pip install -r requirements.txt
+**Step-by-step:**
+1. Create and activate environment: `python3 -m venv venv && source venv/bin/activate`
+2. Install dependencies: `pip install -r requirements.txt`
+3. Run the application: `python main.py`
 
-# Run the application
-python main.py
+---
+
+## 🔄 How to Update
+
+### For Docker installations:
+```bash
+git pull && docker build -t shithead-bot . && docker rm -f shithead && docker run -d --name shithead --env-file .env -v $(pwd)/chroma_data:/app/chroma_data -v $(pwd)/shithead.db:/app/shithead.db -v $(pwd)/short_term.json:/app/short_term.json shithead-bot
+```
+
+### For Local installations:
+```bash
+git pull && source venv/bin/activate && pip install -r requirements.txt && # Restart your process (e.g., python main.py)
 ```
 
 ---
