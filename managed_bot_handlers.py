@@ -114,5 +114,10 @@ async def handle_replies(message: Message, bot: Bot):
     
     response = await generate_response(prompt, system_prompt)
     
+    estimated_tokens = len(prompt + response) // 4
+    await db.increment_stat(bot.id, "replies_received", 1)
+    await db.increment_stat(bot.id, "tokens_used", estimated_tokens)
+    
     await message.reply(response)
     add_to_short_term(thread_id, response, "assistant")
+sponse, "assistant")

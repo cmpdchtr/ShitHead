@@ -89,4 +89,28 @@ async def get_bot_channels(bot_id: int):
     async with aiosqlite.connect(DB_PATH) as db:
         async with db.execute("SELECT channel_id FROM bot_channels WHERE bot_id = ?", (bot_id,)) as cursor:
             rows = await cursor.fetchall()
+            return [str(row[0]) for row in rows]
+
+async def remove_bot_channel(bot_id: int, channel_id: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("DELETE FROM bot_channels WHERE bot_id = ? AND channel_id = ?", (bot_id, channel_id))
+        await db.commit()
+
+async def update_bot_identity(bot_id: int, name: str, about: str, description: str):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("UPDATE managed_bots SET name = ?, about_text = ?, description = ? WHERE bot_id = ?", (name, about, description, bot_id))
+        await db.commit()
+ system_prompt, probability, delay_seconds, keywords, ignore_users FROM managed_bots WHERE bot_id = ?", (bot_id,)) as cursor:
+            return await cursor.fetchone()
+
+
+async def add_bot_channel(bot_id: int, channel_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        await db.execute("INSERT OR IGNORE INTO bot_channels (bot_id, channel_id) VALUES (?, ?)", (bot_id, channel_id))
+        await db.commit()
+
+async def get_bot_channels(bot_id: int):
+    async with aiosqlite.connect(DB_PATH) as db:
+        async with db.execute("SELECT channel_id FROM bot_channels WHERE bot_id = ?", (bot_id,)) as cursor:
+            rows = await cursor.fetchall()
             return [row[0] for row in rows]

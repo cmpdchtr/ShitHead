@@ -88,3 +88,14 @@ def get_long_term_context(channel_id: str, query: str, n_results: int = 3) -> st
     except Exception as e:
         print(f"Error querying ChromaDB: {e}")
         return ""
+
+def clear_channel_memory(channel_id: str):
+    """
+    Deletes all vectors associated with a specific channel_id.
+    """
+    try:
+        channel_memory.delete(where={"channel_id": channel_id})
+        return True
+    except Exception as e:
+        print(f"Error deleting memory for channel {channel_id}: {e}")
+        return False
