@@ -15,18 +15,19 @@
 Each managed bot is powered by **DeepSeek** (via the [OpenDeep](https://github.com/cmpdchtr/opendeep) library) and maintains contextual awareness of your channel using **ChromaDB**.
 
 ## ✨ Key Features
+- 🎛 **Web App Dashboard:** A premium, built-in React dashboard to manage bots visually. Access it right from Telegram!
 - 🤖 **Managed Bots:** Create new AI bots with a single click through the Master Bot interface.
 - 🧠 **Intelligent Comments:** Bots autonomously comment on new posts in your channel using DeepSeek.
 - 💬 **Audience Interaction:** Bots can reply to users and engage in discussions, maintaining short-term conversational history via JSON.
 - 📚 **Long-term Memory:** Integration with the **ChromaDB** vector database allows bots to recall similar past posts for highly contextual responses.
-- ⚙️ **Dynamic System Prompts:** Customize the personality and role of each bot using the `/setprompt` command (e.g., *"You are a sarcastic critic"* or *"You are a cheerful cat"*).
+- ⚙️ **Rule Engine & Presets:** Use quick personality presets and set rules (probability, delay, keywords) via the Web App.
 - 🐳 **Docker Ready:** Easy, one-click deployment.
 
 ---
 
 ## 🛠 Technology Stack
-- **Language:** Python 3.11+
-- **Telegram API:** [aiogram 3.27+](https://docs.aiogram.dev/)
+- **Backend:** Python 3.11+, [FastAPI](https://fastapi.tiangolo.com/), [aiogram 3.27+](https://docs.aiogram.dev/)
+- **Frontend:** React, TailwindCSS, Framer Motion, [@twa-dev/sdk](https://github.com/twa-dev/sdk)
 - **AI Integration:** [OpenDeep](https://github.com/cmpdchtr/opendeep) (fast DeepSeek client)
 - **Vector Database:** [ChromaDB](https://www.trychroma.com/) (for long-term memory)
 - **Relational Database:** aiosqlite (asynchronous SQLite for storing bot configurations)
@@ -42,6 +43,7 @@ git clone https://github.com/cmpdchtr/ShitHead.git && cd ShitHead && cp .env.exa
 Open the `.env` file and insert your tokens:
 - `MASTER_BOT_TOKEN` — The token for the master bot obtained from [@BotFather](https://t.me/BotFather) (ensure that "Bot Management Mode" is enabled in the bot's settings).
 - `DEEPSEEK_USER_TOKEN` — Your `userToken` from the Local Storage of [chat.deepseek.com](https://chat.deepseek.com).
+- `WEBAPP_URL` — (Optional) The public URL of your FastAPI server (e.g., via Cloudflare Tunnels) so Telegram can open the Web App dashboard. Example: `https://my-tunnel.trycloudflare.com`
 
 ### Step 2: Run via Docker (Recommended)
 **One-liner command:**
