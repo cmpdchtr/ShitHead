@@ -4,24 +4,49 @@ from ai_client import generate_response
 from memory import save_to_long_term, get_long_term_context, add_to_short_term, get_short_term_context
 import db
 import asyncio
+import json
+import random
 
 managed_router = Router()
 
+async def check_rules(bot_info, text: str) -> bool:
+    # bot_info: token, system_prompt, probability, delay_seconds, keywords, ignore_users
+    probability = bot_info[2]
+    keywords_str = bot_info[4]
+    
+    if random.randint(1, 100) > probability:
+        return False
+        
+    if keywords_str:
+        try:
+            kws = json.loads(keywords_str)
+            if kws:
+                text_lower = text.lower()
+                if not any(kw.lower() in text_lower for kw in kws):
+                    return False
+        except:
+            pass
+            
+    return True
+
 @managed_router.message(F.is_automatic_forward)
 async def handle_new_post_in_comments(message: Message, bot: Bot):
-    """
-    This triggers when a post from a linked channel is automatically forwarded to the discussion group.
-    The bot will leave a comment here.
-    """
     bot_info = await db.get_managed_bot(bot.id)
     if not bot_info:
         return
         
     system_prompt = bot_info[1]
+    delay_seconds = bot_info[3]
     
     text = message.text or message.caption or ""
     if not text:
         return
+        
+    if not await check_rules(bot_info, text):
+        return
+        
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
         
     channel_id = str(message.forward_from_chat.id) if message.forward_from_chat else str(message.chat.id)
     post_id = str(message.message_id)
@@ -49,10 +74,6 @@ async def handle_new_post_in_comments(message: Message, bot: Bot):
 
 @managed_router.message(F.reply_to_message)
 async def handle_replies(message: Message, bot: Bot):
-    """
-    This triggers when someone replies to a message in the chat.
-    We check if they are replying to the bot.
-    """
     if message.reply_to_message.from_user.id != bot.id:
         return
         
@@ -61,14 +82,25 @@ async def handle_replies(message: Message, bot: Bot):
         return
         
     system_prompt = bot_info[1]
+    delay_seconds = bot_info[3]
+    ignore_users_str = bot_info[5]
+    
+    if ignore_users_str:
+        try:
+            igns = json.loads(ignore_users_str)
+            username = message.from_user.username
+            if username and any(ign.replace('@', '').lower() == username.lower() for ign in igns):
+                return
+        except:
+            pass
     
     text = message.text or message.caption or ""
     if not text:
         return
         
-    # The thread is identified by the root message ID. 
-    # But it's easier to just use the message_thread_id if forums, or the discussion root.
-    # For standard discussion groups, we'll just use a combination of chat_id and message_thread_id
+    if delay_seconds > 0:
+        await asyncio.sleep(delay_seconds)
+        
     thread_root_id = message.message_thread_id or message.reply_to_message.message_id
     thread_id = f"{message.chat.id}_{thread_root_id}"
     

@@ -1,11 +1,21 @@
 from aiogram import Router, F, Bot
-from aiogram.types import Message, Update
+from aiogram.types import Message, Update, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from aiogram.filters import CommandStart, Command
 from aiogram.types import BotCommand
 from aiogram.exceptions import TelegramAPIError
+import os
 import db
 
 manager_router = Router()
+
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://your-cloudflare-tunnel-url.trycloudflare.com")
+
+@manager_router.message(Command("dashboard"))
+async def open_dashboard(message: Message):
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🎛 Відкрити Dashboard", web_app=WebAppInfo(url=WEBAPP_URL))]
+    ])
+    await message.answer("Ось твоя панель керування ботами:", reply_markup=keyboard)
 
 @manager_router.message(CommandStart())
 async def start_cmd(message: Message, bot: Bot):
