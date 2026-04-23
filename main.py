@@ -3,14 +3,17 @@ import os
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from dotenv import load_dotenv
+import uvicorn
 
 import db
 from manager_handlers import manager_router
 from managed_bot_handlers import managed_router
+from api import app as fastapi_app
 
 load_dotenv()
 
 MASTER_BOT_TOKEN = os.getenv("MASTER_BOT_TOKEN")
+API_PORT = int(os.getenv("API_PORT", "8000"))
 
 # Store polling tasks for managed bots
 running_bots = {}
@@ -51,6 +54,11 @@ async def db_watcher():
                 await start_managed_bot(bot_id, token)
         await asyncio.sleep(5)
 
+async def start_api():
+    config = uvicorn.Config(fastapi_app, host="0.0.0.0", port=API_PORT, log_level="info")
+    server = uvicorn.Server(config)
+    await server.serve()
+
 async def main():
     if not MASTER_BOT_TOKEN:
         print("ERROR: MASTER_BOT_TOKEN is missing in .env")
@@ -66,10 +74,15 @@ async def main():
     await start_all_saved_bots()
     
     # Start the watcher to dynamically pick up new bots
-    asyncio.create_task(db_watcher())
+    watcher_task = asyncio.create_task(db_watcher())
     
     print("Starting master bot ShitHead...")
-    await master_dp.start_polling(master_bot)
+    bot_task = asyncio.create_task(master_dp.start_polling(master_bot))
+    
+    print(f"Starting FastAPI server on port {API_PORT}...")
+    api_task = asyncio.create_task(start_api())
+    
+    await asyncio.gather(bot_task, watcher_task, api_task)
 
 if __name__ == "__main__":
     asyncio.run(main())
